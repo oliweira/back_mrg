@@ -159,7 +159,7 @@ app.delete(`${API_URL}/:id`, async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [result] = await pool.query('DELETE FROM produtos WHERE id = ?', [id]);
+        const [result] = await pool.query('DELETE FROM produtos where id_produto = ?', [id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Produto não encontrado.' });
