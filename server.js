@@ -78,13 +78,14 @@ app.post(API_URL, async (req, res) => {
         const imagesJson = newProduct.st_urlimagemextra ? JSON.stringify(newProduct.st_urlimagemextra) : '[]';
         const videosJson = newProduct.st_urlvideoextra ? JSON.stringify(newProduct.st_urlvideoextra) : '[]';
 
-        const sql = `INSERT INTO products (st_produto, st_descricao, st_colecao, nu_custo, nu_preco, nu_quantidade, st_urlimagem, st_urlimagemextra, st_urlvideoextra) 
+        const sql = `INSERT INTO products (st_produto, st_descricao, st_colecao, st_idade, nu_custo, nu_preco, nu_quantidade, st_urlimagem, st_urlimagemextra, st_urlvideoextra) 
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
         
         const values = [
             newProduct.st_produto,
             newProduct.st_descricao || null,
             newProduct.st_colecao || null,
+            newProduct.st_idade || null,
             newProduct.nu_custo || null,
             newProduct.nu_preco || null,
             newProduct.nu_quantidade || null,
@@ -118,15 +119,16 @@ app.put(`${API_URL}/:id`, async (req, res) => {
     const videosJson = updatedData.st_urlvideoextra ? JSON.stringify(updatedData.st_urlvideoextra) : null;
 
     try {
-        const sql = `UPDATE products SET st_produto = ?, st_descricao = ?, st_colecao = ?, nu_custo = ?, nu_preco = ?, nu_quantidade = ?, st_urlimagem = ?, st_urlimagemextra = ?, st_urlvideoextra = ?
+        const sql = `UPDATE products SET st_produto = ?, st_descricao = ?, st_colecao = ?, st_idade = ? nu_custo = ?, nu_preco = ?, nu_quantidade = ?, st_urlimagem = ?, st_urlimagemextra = ?, st_urlvideoextra = ?
                      WHERE id = ?`;
         
         const values = [
             updatedData.st_produto,
             updatedData.st_descricao || null,
-            updatedData.st_colecao,
-            updatedData.nu_custo,
-            updatedData.nu_preco,
+            updatedData.st_colecao || null,
+            updatedData.st_idade || null,
+            updatedData.nu_custo || null,
+            updatedData.nu_preco || null,
             updatedData.nu_quantidade || null,
             updatedData.st_urlimagem || null,
             imagesJson,
