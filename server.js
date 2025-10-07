@@ -7,7 +7,7 @@ import mysql from 'mysql2/promise'; // Usando a versão com Promises
 
 const app = express();
 const PORT = 3001;
-const API_URL = '/api/products';
+const API_URL = '/api/produtos';
 
 // --- Configuração do Banco de Dados MySQL (Aiven.io) ---
 // *** ATENÇÃO: Substitua os placeholders abaixo pelas suas credenciais reais. ***
@@ -39,23 +39,23 @@ app.use(express.json());
 // --- Rotas CRUD (Create, Read, Update, Delete) ---
 
 /**
- * ROTA GET /api/products
+ * ROTA GET /api/produtos
  * Lista todos os produtos do banco de dados.
  */
 app.get(API_URL, async (req, res) => {
     try {
         // [0] contém os resultados da query, [1] contém metadados
-        const [rows] = await pool.query('SELECT * FROM products');
+        const [rows] = await pool.query('SELECT * FROM produtos');
         
         // Converte os campos TEXT/JSON de volta para arrays JavaScript antes de enviar ao cliente
-        const products = rows.map(product => ({
+        const produtos = rows.map(product => ({
             ...product,
             st_urlimagemextra: product.st_urlimagemextra ? JSON.parse(product.st_urlimagemextra) : [],
             st_urlvideoextra: product.st_urlvideoextra ? JSON.parse(product.st_urlvideoextra) : []
         }));
 
-        console.log(`GET ${API_URL} chamado. Retornando ${products.length} produtos.`);
-        res.json(products);
+        console.log(`GET ${API_URL} chamado. Retornando ${produtos.length} produtos.`);
+        res.json(produtos);
     } catch (error) {
         console.error('Erro ao listar produtos:', error);
         res.status(500).json({ error: 'Erro interno do servidor ao buscar produtos.' });
@@ -63,13 +63,13 @@ app.get(API_URL, async (req, res) => {
 });
 
 /**
- * ROTA POST /api/products
+ * ROTA POST /api/produtos
  * Cria um novo produto no banco de dados.
  */
 app.post(API_URL, async (req, res) => {
     const newProduct = req.body;
 
-    if (!newProduct.name || newProduct.price === undefined || newProduct.quantity === undefined) {
+    if (!newProduct.st_produto || newProduct.nu_preco === undefined || newProduct.nu_quantidade === undefined) {
         return res.status(400).json({ error: 'Nome, preço e quantidade são obrigatórios.' });
     }
 
@@ -78,8 +78,8 @@ app.post(API_URL, async (req, res) => {
         const imagesJson = newProduct.st_urlimagemextra ? JSON.stringify(newProduct.st_urlimagemextra) : '[]';
         const videosJson = newProduct.st_urlvideoextra ? JSON.stringify(newProduct.st_urlvideoextra) : '[]';
 
-        const sql = `INSERT INTO products (st_produto, st_descricao, st_colecao, st_idade, nu_custo, nu_preco, nu_quantidade, st_urlimagem, st_urlimagemextra, st_urlvideoextra) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO produtos (st_produto, st_descricao, st_colecao, st_idade, nu_custo, nu_preco, nu_quantidade, st_urlimagem, st_urlimagemextra, st_urlvideoextra) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         
         const values = [
             newProduct.st_produto,
@@ -90,8 +90,8 @@ app.post(API_URL, async (req, res) => {
             newProduct.nu_preco || null,
             newProduct.nu_quantidade || null,
             newProduct.st_urlimagem || null,
-            imagesJson,
-            videosJson
+            imagesJson || null,
+            videosJson || null
         ];
 
         const [result] = await pool.query(sql, values);
@@ -100,14 +100,14 @@ app.post(API_URL, async (req, res) => {
         const productToAdd = { ...newProduct, id: result.insertId, st_urlimagemextra: newProduct.st_urlimagemextra || [], st_urlvideoextra: newProduct.st_urlvideoextra || [] };
         console.log('Produto adicionado com ID:', result.insertId);
         res.status(201).json(productToAdd);
-    } catch (error) {
+    } catch (error) {console.log(error);
         console.error('Erro ao criar produto:', error);
         res.status(500).json({ error: 'Erro interno do servidor ao criar produto.' });
     }
 });
 
 /**
- * ROTA PUT /api/products/:id
+ * ROTA PUT /api/produtos/:id
  * Atualiza um produto existente no banco de dados.
  */
 app.put(`${API_URL}/:id`, async (req, res) => {
@@ -119,8 +119,7 @@ app.put(`${API_URL}/:id`, async (req, res) => {
     const videosJson = updatedData.st_urlvideoextra ? JSON.stringify(updatedData.st_urlvideoextra) : null;
 
     try {
-        const sql = `UPDATE products SET st_produto = ?, st_descricao = ?, st_colecao = ?, st_idade = ? nu_custo = ?, nu_preco = ?, nu_quantidade = ?, st_urlimagem = ?, st_urlimagemextra = ?, st_urlvideoextra = ?
-                     WHERE id = ?`;
+        const sql = `UPDATE produtos SET st_produto = ?, st_descricao = ?, st_colecao = ?, st_idade = ?, nu_custo = ?, nu_preco = ?, nu_quantidade = ?, st_urlimagem = ?, st_urlimagemextra = ?, st_urlvideoextra = ? WHERE id_produto = ?`;
         
         const values = [
             updatedData.st_produto,
@@ -153,14 +152,14 @@ app.put(`${API_URL}/:id`, async (req, res) => {
 });
 
 /**
- * ROTA DELETE /api/products/:id
+ * ROTA DELETE /api/produtos/:id
  * Remove um produto do banco de dados.
  */
 app.delete(`${API_URL}/:id`, async (req, res) => {
     const { id } = req.params;
 
     try {
-        const [result] = await pool.query('DELETE FROM products WHERE id = ?', [id]);
+        const [result] = await pool.query('DELETE FROM produtos WHERE id = ?', [id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Produto não encontrado.' });
